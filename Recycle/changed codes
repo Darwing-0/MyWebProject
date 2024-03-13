@@ -1,0 +1,48 @@
+//app.post('/register', async (req, res) => {
+   // try {
+    //    const hashedPassword = await bcrypt.hash(req.body.password, 10)
+    //    users.push({
+//            id: Date.now().toString(),
+  //          firstName: req.body.firstName,
+    //        lastName: req.body.lastName,
+      //      email: req.body.email,
+        //    password: hashedPassword
+      //  })
+    //    res.redirect('/login')
+    //}   catch {
+    //    res.redirect('/register')
+    //}
+    //console.log(users)
+//})
+
+//
+//app.post('/register', async (req, res) => {
+//    const { firstName, lastName, email, password } = req.body;
+//
+//     try {
+//        // Hash the password
+//        const hashedPassword = await bcrypt.hash(password, 10);
+//
+//        // Use neo4jSession to create a new user node
+//        const neo4jResult = await neo4jSession.run(
+//            'CREATE (u:User {firstName: $firstName, lastName: $lastName, email: $email, password: $password}) RETURN u',
+//            { firstName, lastName, email, password: hashedPassword }
+//        );
+//
+//        // Assuming you have a users array for in-memory storage
+//        users.push({
+//            id: Date.now().toString(),
+//            firstName,
+//            lastName,
+//            email,
+//            password: hashedPassword
+//        });
+
+        // Redirect or send a response based on your application logic
+//        res.redirect('/login');
+//    } catch (error) {
+//        console.error(error);
+//        res.status(500).send('Internal Server Error');
+//    }
+//    console.log(users)
+//})

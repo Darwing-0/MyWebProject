@@ -4,16 +4,21 @@ if ( process.env.NODE_ENV !== 'production'){
 
 // Libraries
 const express = require('express')
+const bodyParser = require('body-parser')
+const session = require('express-session')
+const neo4jSession = require('./database/neo4j')
+
 const app = express()
 const bcrypt = require('bcrypt')
 const passport = require('passport')
 
+
 const flash = require('express-flash')
-const session = require('express-session')
+
 const methodOverride = require('method-override')
 
-const nodemailer = require('nodemailer');
-const sendgridTransport = require('nodemailer-sendgrid-transport');
+const nodemailer = require('nodemailer')
+const sendgridTransport = require('nodemailer-sendgrid-transport')
 
 const initializePassport = require('./passport-config')
 initializePassport(
@@ -22,15 +27,25 @@ initializePassport(
     id => users.find(user => user.id === id)
 )
 
+// Middleware
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+
 // don't forget to add database bellow
 const users = [ ]
 
 // Define the profiles array at the top of your server file
 const profiles = [];
 
+
+
+
                                         // Routes
-app.set('View engine', 'ejs')
-app.use(express.urlencoded({ extended: false}))
+
+
+
+                                        app.set('View engine', 'ejs')
+//app.use(express.urlencoded({ extended: false}))
 app.use(flash())
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -60,7 +75,12 @@ function checkNotAuthenticated( req, res, next){
     return next()
 }
 
+
+
                                         //GET
+
+
+
 // Guest
 app.get('/guest', (req, res) => {
     // Handle the request for /guest
@@ -96,7 +116,12 @@ app.get('/about', (req, res) => {
     res.render('about.ejs'); 
 });
 
+
+
                                         // DELETE
+
+
+
 // Logout
 app.delete('/logout', (req, res) => {
     req.logout((err) => {
@@ -107,7 +132,11 @@ app.delete('/logout', (req, res) => {
     });
 });
 
+
+
                                         // POST
+
+                                        
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login', 
@@ -115,6 +144,7 @@ app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
 })) 
 
 
+// Route for user registration
 app.post('/register', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
