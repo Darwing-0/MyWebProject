@@ -6,7 +6,7 @@ if ( process.env.NODE_ENV !== 'production'){
 const express = require('express')
 const bodyParser = require('body-parser')
 const session = require('express-session')
-const neo4jSession = require('./database/neo4j')
+
 
 const app = express()
 const bcrypt = require('bcrypt')
@@ -136,7 +136,7 @@ app.delete('/logout', (req, res) => {
 
                                         // POST
 
-                                        
+
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
     successRedirect: '/',
     failureRedirect: '/login', 
