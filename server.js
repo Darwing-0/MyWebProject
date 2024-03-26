@@ -1,15 +1,40 @@
-if ( process.env.NODE_ENV !== 'production'){
-  require ('dotenv').config()
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config()
 }
 
 // Libraries
 const express = require('express')
 const bodyParser = require('body-parser')
 const session = require('express-session')
+const mysql = require('mysql2')
+
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
+const JWT_SECRET_KEY = 'Darwing'
+
+// //  Huz Code
+// creating the sql connection
+
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: "root",
+    password: "admin123",
+    database: "PersonalFitnessGen"
+})
 
 
-const app = express()
-const bcrypt = require('bcrypt')
+// Connect to mySQL
+connection.connect((err) => {
+    if (err) throw err;
+    console.log("Successfully connected to SQL");
+})
+
+
+
+// //  Huz Code
+
+
+
 const passport = require('passport')
 
 
@@ -20,9 +45,15 @@ const methodOverride = require('method-override')
 const nodemailer = require('nodemailer')
 const sendgridTransport = require('nodemailer-sendgrid-transport')
 
+const pool = require('./connector')
+
+const app = express()
+
+
+
 const initializePassport = require('./passport-config')
 initializePassport(
-    passport, 
+    passport,
     email => users.find(user => user.email === email),
     id => users.find(user => user.id === id)
 )
@@ -32,7 +63,20 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 // don't forget to add database bellow
-const users = [ ]
+// const users = [ ]
+
+
+// // Huz Code
+// Insert the users from the array into the database
+
+// users.forEach((users) => {
+//     const {firstname, lastname, password, email} = user;
+
+//     const query = `INSERT INTO users (firstname, lastname, password, email) VALUES (?, ?, ?, ?)`;
+//     connection.query(query, [firstname, lastname, password, -email], (err, results))
+// })
+
+// // Huz Code
 
 // Define the profiles array at the top of your server file
 const profiles = [];
@@ -40,11 +84,11 @@ const profiles = [];
 
 
 
-                                        // Routes
+// Routes
 
 
 
-                                        app.set('View engine', 'ejs')
+app.set('View engine', 'ejs')
 //app.use(express.urlencoded({ extended: false}))
 app.use(flash())
 app.use(session({
@@ -59,16 +103,27 @@ app.use(passport.session())
 app.use(methodOverride('_method'))
 
 // Check Authentication
-function checkAuthenticated( req, res, next){
+function checkAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return next()
     }
-    
+
     res.redirect('/login')
 }
 
+function isAuthenticated(req, res, next){
+    // check if the user is logged in
 
-function checkNotAuthenticated( req, res, next){
+    if(req.session && req.session.authenticated){
+        return next();
+
+    } else {
+        return res.redirect('/login')
+    }
+}
+
+
+function checkNotAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return res.redirect('/')
     }
@@ -77,7 +132,7 @@ function checkNotAuthenticated( req, res, next){
 
 
 
-                                        //GET
+//GET
 
 
 
@@ -88,18 +143,40 @@ app.get('/guest', (req, res) => {
 });
 
 // Login
-app.get('/', checkAuthenticated, ( req, res) => {
-    res.render('index.ejs', { name: req.user.firstName }) 
+// app.get('/', checkAuthenticated, (req, res) => {
+//     res.render('index.ejs', { name: req.user.firstName })
+// })
+
+
+// app.get('/', (req, res) => {
+//     res.render('index.ejs')
+// })
+
+app.get("/", isAuthenticated, (req, res) => {
+    //check if the user is authenticated
+    if(req.session.userId){
+        res.send('Welcome to dashboard!')
+    } else {
+        console.log(req.session);
+        res.redirect('/login')
+    }
 })
 
-app.get('/login', checkNotAuthenticated, ( req, res) => {
+// app.get('/login', checkNotAuthenticated, (req, res) => {
+//     res.render('login.ejs')
+// })
+app.get('/login', (req, res) => {
     res.render('login.ejs')
 })
 
+// app.get('/login', (req, res) => {
+//     res.render('login.ejs')
+// })
+
 // Register
-app.get('/register', checkNotAuthenticated, ( req, res) => {
+app.get('/register', checkNotAuthenticated, (req, res) => {
     res.render('register.ejs')
-}) 
+})
 
 // User information
 app.get('/userProfile', (req, res) => {
@@ -113,12 +190,12 @@ app.get('/contact', (req, res) => {
 
 // About Us
 app.get('/about', (req, res) => {
-    res.render('about.ejs'); 
+    res.render('about.ejs');
 });
 
 
 
-                                        // DELETE
+// DELETE
 
 
 
@@ -134,33 +211,81 @@ app.delete('/logout', (req, res) => {
 
 
 
-                                        // POST
+// POST
 
 
-app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login', 
-    failureFlash: true     
-})) 
+// app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
+//     successRedirect: '/',
+//     failureRedirect: '/login',
+//     failureFlash: true
+
+// }))
+
+app.post('/login' , (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    // check if the user exists in the mysql database
+
+    const sql = 'SELECT * FROM users WHERE email = ? AND password = ?';
+    connection.query(sql, [email, password], (err, results) => {
+        if(err){
+            console.error("Error querying user data from the database: ", err);
+            return res.status(500).send("Internal Server Error");
+        }
+
+        if(results.length > 0){
+            // User found, login successful
+            // return res.send('Login Successful')
+             res.redirect('/')
+        } else {
+            // User not found or credentials are incorrect
+            return res.status(401).send('Invalid email or password');
+        }
+    })
+})
+
+// app.get("/", (req, res) => {
+//     //check if the user is authenticated
+//     if(req.session.userId){
+//         res.send('Welcome to dashboard!')
+//     } else {
+//         res.redirect('/login')
+//     }
+// })
 
 
 // Route for user registration
 app.post('/register', async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10)
-        users.push({
-            id: Date.now().toString(),
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            email: req.body.email,
-            password: hashedPassword
-        })
-        res.redirect('/login')
-    }   catch {
-        res.redirect('/register')
-    }
-    console.log(users)
+
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
+    const email = req.body.email;
+    //    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const password = req.body.password;
+
+
+    console.log(firstName);
+
+    // Inset the user data in the database
+
+    const sql = 'INSERT INTO users (firstname, lastname, password, email) VALUES (?, ?, ?, ?)';
+
+    connection.query(sql, [firstName, lastName, password, email], (err, result) => {
+        if (err) {
+            console.error("ERROR inserting user data into database", err);
+           return res.status(500).send('Internal Server Error');
+        }
+        console.log("User data inserted into database", result);
+        return res.send('Sign Up Successful')
+
+    })
+
+
+
 })
+
 
 // Calculate
 app.post('/calculate', (req, res) => {
@@ -223,32 +348,32 @@ app.post('/userProfile', (req, res) => {
 
 
 
-// Save the information to a database (replace this with your database logic)
-// might use MongoDB/Dbbeaver/Sqllite
+    // Save the information to a database (replace this with your database logic)
+    // might use MongoDB/Dbbeaver/Sqllite
 
-//const Profile = require('./models/profile'); // Import your Profile model
-//const newProfile = new Profile({ height, weight, age, sex, goals });
-//newProfile.save();
+    //const Profile = require('./models/profile'); // Import your Profile model
+    //const newProfile = new Profile({ height, weight, age, sex, goals });
+    //newProfile.save();
 
-// Send a response back to the client side
-//res.send('Profile saved successfully!');
+    // Send a response back to the client side
+    //res.send('Profile saved successfully!');
 
-// Save the information to a database (NEED TO replace this with OUR database)
-// For demonstration purposes, we will assume we have a profiles array to store the information
-const profile = { height, weight, age, sex, goals };
-profiles.push(profile);
+    // Save the information to a database (NEED TO replace this with OUR database)
+    // For demonstration purposes, we will assume we have a profiles array to store the information
+    const profile = { height, weight, age, sex, goals };
+    profiles.push(profile);
 
-// Send a response back to the client side
-res.send('Profile saved successfully! <a href="/">Home Page</a> ');
+    // Send a response back to the client side
+    res.send('Profile saved successfully! <a href="/">Home Page</a> ');
 });
 
 // Output saved profile information
 app.get('/userProfile/output', (req, res) => {
-// Retrieve the last saved profile (assuming it's the latest one)
-const savedProfile = profiles[profiles.length - 1];
+    // Retrieve the last saved profile (assuming it's the latest one)
+    const savedProfile = profiles[profiles.length - 1];
 
-// Render a template to display the saved profile information
-res.render('savedProfile.ejs', { profile: savedProfile });
+    // Render a template to display the saved profile information
+    res.render('savedProfile.ejs', { profile: savedProfile });
 });
- 
+
 app.listen(process.env.Port || 3000)

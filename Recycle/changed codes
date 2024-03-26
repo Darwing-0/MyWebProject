@@ -46,3 +46,21 @@
 //    }
 //    console.log(users)
 //})
+
+// Route for user registration
+// app.post('/register', async (req, res) => {
+//   try {
+//       const hashedPassword = await bcrypt.hash(req.body.password, 10);
+//       const sql = 'INSERT INTO USERS (firstname, lastname, email, password) VALUES (?, ?, ?, ?)';
+//       pool.query(sql, [req.body.firstName, req.body.lastName, req.body.email, hashedPassword], (err, result) => {
+//           if (err) {
+//               console.error(err);
+//               return res.status(500).send('Error registering user');
+//           }
+//           res.redirect('/login');
+//       });
+//   } catch (error) {
+//       console.error(error);
+//       res.redirect('/register');
+//   }
+// })
