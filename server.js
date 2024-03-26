@@ -111,10 +111,10 @@ function checkAuthenticated(req, res, next) {
     res.redirect('/login')
 }
 
-function isAuthenticated(req, res, next){
+function isAuthenticated(req, res, next) {
     // check if the user is logged in
 
-    if(req.session && req.session.authenticated){
+    if (req.session && req.session.authenticated) {
         return next();
 
     } else {
@@ -154,7 +154,7 @@ app.get('/guest', (req, res) => {
 
 app.get("/", isAuthenticated, (req, res) => {
     //check if the user is authenticated
-    if(req.session.userId){
+    if (req.session.userId) {
         res.send('Welcome to dashboard!')
     } else {
         console.log(req.session);
@@ -221,23 +221,31 @@ app.delete('/logout', (req, res) => {
 
 // }))
 
-app.post('/login' , (req, res) => {
+app.post('/login', (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
+    const firstName = req.body;
 
+ 
     // check if the user exists in the mysql database
 
     const sql = 'SELECT * FROM users WHERE email = ? AND password = ?';
     connection.query(sql, [email, password], (err, results) => {
-        if(err){
+        if (err) {
             console.error("Error querying user data from the database: ", err);
             return res.status(500).send("Internal Server Error");
         }
 
-        if(results.length > 0){
+        if (results.length > 0) {
+            const user = results[0]
+
+            
+            req.session.firstname = user.firstname
             // User found, login successful
             // return res.send('Login Successful')
-             res.redirect('/')
+            //  res.redirect('/index')
+            res.render('index.ejs', {firstname: user.firstname});
+
         } else {
             // User not found or credentials are incorrect
             return res.status(401).send('Invalid email or password');
@@ -275,7 +283,7 @@ app.post('/register', async (req, res) => {
     connection.query(sql, [firstName, lastName, password, email], (err, result) => {
         if (err) {
             console.error("ERROR inserting user data into database", err);
-           return res.status(500).send('Internal Server Error');
+            return res.status(500).send('Internal Server Error');
         }
         console.log("User data inserted into database", result);
         return res.send('Sign Up Successful')
