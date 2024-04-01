@@ -7,6 +7,8 @@ email VARCHAR(100) NOT NULL,
 height INT,
 weight INT,
 age INT,
+sex VARCHAR(100),
+goals VARCHAR(100),
 constraint user_pk primary key(userID)
 )
 

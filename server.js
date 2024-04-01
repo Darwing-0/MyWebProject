@@ -2,6 +2,7 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config()
 }
 
+
 // Libraries
 const express = require('express')
 const bodyParser = require('body-parser')
@@ -17,6 +18,7 @@ const JWT_SECRET_KEY = 'Darwing'
 
 const connection = mysql.createConnection({
     host: 'localhost',
+    port: '3306',
     user: "root",
     password: "admin123",
     database: "PersonalFitnessGen"
@@ -52,6 +54,7 @@ const app = express()
 
 
 const initializePassport = require('./passport-config')
+const { isUnboundRelationship } = require('neo4j-driver')
 initializePassport(
     passport,
     email => users.find(user => user.email === email),
@@ -103,13 +106,13 @@ app.use(passport.session())
 app.use(methodOverride('_method'))
 
 // Check Authentication
-function checkAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next()
-    }
+// function checkAuthenticated(req, res, next) {
+//     if (req.isAuthenticated()) {
+//         return next()
+//     }
 
-    res.redirect('/login')
-}
+//     res.redirect('/login')
+// }
 
 function isAuthenticated(req, res, next) {
     // check if the user is logged in
@@ -153,21 +156,31 @@ app.get('/guest', (req, res) => {
 // })
 
 app.get("/", isAuthenticated, (req, res) => {
-    //check if the user is authenticated
-    if (req.session.userId) {
-        res.send('Welcome to dashboard!')
+    // check if the user is authenticated
+    if (!req.session.email) {
+        res.render('login.ejs')
+
     } else {
-        console.log(req.session);
-        res.redirect('/login')
+        res.render('index.ejs')
     }
+    // res.render('index.ejs')
 })
 
 // app.get('/login', checkNotAuthenticated, (req, res) => {
 //     res.render('login.ejs')
 // })
 app.get('/login', (req, res) => {
+    // res.render('login.ejs')
+
+    if (req.session.email) {
+        return res.render('index.ejs', {firstname:req.session.firstname})
+
+    }
     res.render('login.ejs')
 })
+// app.get('/index', (req, res) => {
+//     res.render('index.ejs')
+// })
 
 // app.get('/login', (req, res) => {
 //     res.render('login.ejs')
@@ -193,6 +206,9 @@ app.get('/about', (req, res) => {
     res.render('about.ejs');
 });
 
+app.get('/community', (req, res) => {
+    res.render('community.ejs')
+}) 
 
 
 // DELETE
@@ -224,12 +240,11 @@ app.delete('/logout', (req, res) => {
 app.post('/login', (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    const firstName = req.body;
 
- 
+
     // check if the user exists in the mysql database
 
-    const sql = 'SELECT * FROM users WHERE email = ? AND password = ?';
+    const sql = 'SELECT * FROM USERS WHERE email = ? AND password = ?';
     connection.query(sql, [email, password], (err, results) => {
         if (err) {
             console.error("Error querying user data from the database: ", err);
@@ -239,12 +254,13 @@ app.post('/login', (req, res) => {
         if (results.length > 0) {
             const user = results[0]
 
-            
+
             req.session.firstname = user.firstname
+            req.session.email = user.email
             // User found, login successful
             // return res.send('Login Successful')
             //  res.redirect('/index')
-            res.render('index.ejs', {firstname: user.firstname});
+            res.render('index.ejs', { firstname: user.firstname });
 
         } else {
             // User not found or credentials are incorrect
@@ -278,7 +294,7 @@ app.post('/register', async (req, res) => {
 
     // Inset the user data in the database
 
-    const sql = 'INSERT INTO users (firstname, lastname, password, email) VALUES (?, ?, ?, ?)';
+    const sql = 'INSERT INTO USERS (firstname, lastname, password, email) VALUES (?, ?, ?, ?)';
 
     connection.query(sql, [firstName, lastName, password, email], (err, result) => {
         if (err) {
@@ -348,31 +364,139 @@ app.post('/contact', (req, res) => {
 // User information
 app.post('/userProfile', (req, res) => {
     // Retrieve information from the form
-    const height = req.body.height;
-    const weight = req.body.weight;
-    const age = req.body.age;
-    const sex = req.body.sex;
-    const goals = req.body.goals;
+    // const height = req.body.height;
+    // const weight = req.body.weight;
+    // const age = req.body.age;
+    // const sex = req.body.sex;
+    // const goals = req.body.goals;
 
 
+    const { height, weight, age, sex, goals } = req.body
+    const userEmail = req.session.email
 
-    // Save the information to a database (replace this with your database logic)
-    // might use MongoDB/Dbbeaver/Sqllite
+    console.log(req.session);
+    console.log(req.session.email);
+    console.log(req.session.firstname);
+    // const user = results[0]
+    // console.log(user, "uu");
+    // console.log(user.firstname, "fff");
+    // req.session.firstname = user.firstname
+    // req.session.email = user.email
 
-    //const Profile = require('./models/profile'); // Import your Profile model
-    //const newProfile = new Profile({ height, weight, age, sex, goals });
-    //newProfile.save();
+    // update the user profile in the database
 
-    // Send a response back to the client side
-    //res.send('Profile saved successfully!');
+    const sql = 'UPDATE users SET height = ?, weight = ?, age = ?, sex = ?, goals = ? WHERE email = ?';
 
-    // Save the information to a database (NEED TO replace this with OUR database)
-    // For demonstration purposes, we will assume we have a profiles array to store the information
-    const profile = { height, weight, age, sex, goals };
-    profiles.push(profile);
+    connection.query(sql, [height, weight, age, sex, goals, userEmail], (err, results) => {
 
-    // Send a response back to the client side
-    res.send('Profile saved successfully! <a href="/">Home Page</a> ');
+
+        if (err) {
+            console.error("Error updating user profile in the database", err)
+            return res.status(500).send("Internal Server SError")
+        }
+
+        // Profile updated successfully
+
+        // res.render('userProfile.ejs')
+        // res.send('Profile saved successfully! <a href="/">Home Page</a> ');
+        res.render('index.ejs', { firstname: req.session.firstname });
+
+    })
+
+
+    // res.send('Profile saved successfully! <a href="/">Home Page</a> ');
+});
+
+app.post('/community', (req, res) => {
+    const {title, content} = req.body
+
+    const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ') // code to get the current timestamp
+    connection.query('INSERT INTO posts (title, content, created_at) VALUES (?, ?, ?)', [title, content, createdAt], (err, result) => {
+        if(err) {
+            console.error('Error inserting post into database:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+        console.log('Post created successfully');
+        res.json({message: "Post created successfully", postId: result.insertId})
+
+
+    })
+
+})
+
+// Route to fetch all posts
+app.get('/posts', (req, res) => {
+    connection.query('SELECT * FROM posts ORDER BY created_at ASC', (err, posts) => {
+        if(err){
+            console.log("Error fetching posts from database:", err)
+            res.status(500).json({error: "Internal Server Error"});
+            return;
+        }
+        res.json(posts);
+    })
+})
+
+
+app.get('/posts/:postId/comments', (req, res) => {
+    const postId = req.params.postId;
+
+    // query
+    const sql = `
+    SELECT comments.id AS comment_id, comments.content AS comment_content, comments.created_at AS comment_created_at, CONCAT(users.firstname, ' ', users.lastname) AS username
+    
+    FROM comments 
+    JOIN users ON comments.id = users.userID
+    WHERE comments.post_id = ?
+    `;
+
+    connection.query(sql, [postId], (err, comments) => {
+        if(err){
+            console.error("Error fetching comments:", err);
+            return;
+        }
+        res.json(comments);
+    })
+})
+
+
+// // Route to getch comments for a specific post
+app.get('/posts/:postId/comments', (req, res) => {
+    const postId = req.params.postId;
+
+    connection.query('SELECT * FROM comments WHERE post_id = ?', [postId], (err, comments) => {
+        if(err){
+            console.error("Error fetching comments: ", err);
+            res.status(500).json({error: "Internal Server Error"});
+            return;
+        }
+
+        // send the fetch comments 
+        res.json(comments);
+    })
+
+})
+
+// Route to create a new comment
+app.post('/comments', (req, res) => {
+    const {postId, content} = req.body;
+    const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ') // Current date and time
+
+    connection.query('INSERT INTO comments (post_id, content, created_at) VALUES (?, ?, ?)', [postId, content, createdAt], (err, result) => {
+
+        if(err) {
+            console.error('Error inserting comment into the database: ', err)
+            res.status(500).json({error: "Internal Server Error"})
+            return;
+        }
+
+        console.log("Comment Added Successfully");
+        res.json({id: result.insertId, postId, content, created_at: createdAt})
+
+
+    });
+
+    
 });
 
 // Output saved profile information
@@ -381,7 +505,8 @@ app.get('/userProfile/output', (req, res) => {
     const savedProfile = profiles[profiles.length - 1];
 
     // Render a template to display the saved profile information
-    res.render('savedProfile.ejs', { profile: savedProfile });
+    res.render('savedProfile.ejs', { profile: savedProfile, successMessage: "data saved" });
 });
 
 app.listen(process.env.Port || 3000)
+app.listen(process.env.Port).keepAliveTimeout = 61 * 1000
