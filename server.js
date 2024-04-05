@@ -246,29 +246,51 @@ app.post("/register", async (req, res) => {
   const firstName = req.body.firstName;
   const lastName = req.body.lastName;
   const email = req.body.email;
-  //    const hashedPassword = await bcrypt.hash(password, 10);
-
   const password = req.body.password;
-
-  console.log(firstName);
+console.log(req.body);
+  // console.log(firstName, "fff");
 
   // Inset the user data in the database
 
-  const sql =
-    "INSERT INTO USERS (firstname, lastname, password, email) VALUES (?, ?, ?, ?)";
+  // // Check if the email already exists in the database
 
-  connection.query(
-    sql,
-    [firstName, lastName, password, email],
-    (err, result) => {
-      if (err) {
-        console.error("ERROR inserting user data into database", err);
-        return res.status(500).send("Internal Server Error");
-      }
-      console.log("User data inserted into database", result);
-      return res.send("Sign Up Successful");
+  const checkEmailQuery = "SELECT COUNT(*) AS count FROM users WHERE email = ?";
+
+  connection.query(checkEmailQuery, [email],  (err, result) => {
+    if (err) {
+      console.error("Error checking email in the database", err);
+      return res.status(500).send("Internal Server Error");
+
     }
-  );
+
+    if (result[0].count > 0) {
+      console.log("EMail exists");
+      return res.status(400).json({exists:true})
+      // Email already exists, return an error
+      // return res.send("Email already exists, try with a new email please");
+    } else {
+      // Email is unique, we can proceed with the registration
+
+
+
+      const insertUserQuery =
+        "INSERT INTO USERS (firstname, lastname, password, email) VALUES (?, ?, ?, ?)";
+
+      connection.query(
+        insertUserQuery,
+        [firstName, lastName, password, email],
+        (err, result) => {
+          if (err) {
+            console.error("ERROR inserting user data into database", err);
+            return res.status(500).send("Internal Server Error");
+          }
+          console.log("User data inserted into database", result);
+          // return res.send("Sign Up Successful");
+          res.render("login.ejs");
+
+        });
+    }
+  });
 });
 
 // Calculate
