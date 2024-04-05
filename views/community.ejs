@@ -14,7 +14,192 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+        color: #333;
+    }
+
+    .container {
+        width: 80%;
+        margin: auto;
+        text-align: center;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-top: 50px;
+    }
+
+    h1 {
+        color: #3498db;
+    }
+
+    p {
+        font-size: 18px;
+        line-height: 1.6;
+        text-align: left;
+        margin-bottom: 20px;
+    }
+
+    /* Tabs styling */
+    .tabs {
+        display: flex;
+        justify-content: space-around;
+        background-color: #3498db;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tabs a {
+        color: #fff;
+        text-decoration: none;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .tabs a:hover {
+        background-color: #2980b9;
+    }
+
+    /* Centered strong tags */
+    strong {
+        display: block;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    /* Log-out button styling */
+    .logout-form {
+        margin-top: 20px;
+    }
+
+    .logout-form button {
+        background-color: #e74c3c;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .logout-form button:hover {
+        background-color: #c0392b;
+    }
+
+    /* styles.css */
+
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+
+    form {
+        margin-top: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    button[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    button[type="submit"] {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+
+    .comments-container {
+    margin-top: 20px;
+}
+
+.comment {
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.comment p {
+    margin: 0;
+    font-size: 16px;
+}
+
+.comment .user {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.comment .content {
+    color: #666;
+}
+
+</style>
+</head>
+
 <body>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <!-- User profile -->
+        <a href="/userProfile">User Profile</a>
+        <!-- Goals -->
+        <a href="/goals">Goals</a>
+        <!-- Recommendations Tab -->
+        <a href="/recommendations">Recommendations</a>
+        <!--Engagement Tab -->
+        <a href="/Community">Community</a>
+        <!--NutritionTab -->
+        <a href="/.
+        ">Nutrition Plan</a>
+        <!-- About Us/FAQ Tab-->
+        <a href="/">HomePage</a>
+        <!--Contact Tab -->
+        <a href="/contact">Contact</a>
+        <!--log out-->
+        <form action="/logout?_method=DELETE" method="POST" class="logout-form">
+            <button type="submit">Log Out</button>
+        </form>
+    </div>
     <div class="container pt-5">
         <div class="row">
             <div class="col col-12">
@@ -77,26 +262,10 @@
                     // Clear existing posts before adding new ones
                     postsContainer.innerHTML = '';
                     posts.forEach((post) => {
-                        //     const postElement = document.createElement('div');
-                        //     postElement.classList.add('post');
-                        //     postElement.innerHTML =
-                        //         `
-                        // <div class="row">
-                        //     <div class="col col-1"> 
-                        //         <h2> ${post.id}</h2>
-                        // </div>
-                        //     <div class="col col-2"> 
-                        //         <h2>Title: ${post.title}</h2>
-                        // </div>
-
-                        //     <div class="col col-9"> 
-                        //     <p>Content ${post.content}</p>
-                        // </div>
-                        // </div>
-                        // `;
-                        //     postsContainer.appendChild(postElement)
                         const postElement = createPostElement(post);
                         postsContainer.appendChild(postElement);
+                        console.log(post.id, " fetchPost")
+
                         fetchComments(post.id)
                     })
                 })
@@ -118,15 +287,16 @@
 
             postElement.innerHTML =
                 `
-                <h2>${post.title} </h2>
-                <h2>${post.content} </h2>
-                <form class="commentForm">
-                    <input type="hidden" name="postId" value="${post.id}" />
-                    <input type="text" name="commentContent" placeholder= "Add a comment" />
-                    <button type="submit"> Add Comment </button>
-                </form>
-                <div class="commentsContainer"> </>
-            `;
+                    <h2>${post.title}</h2>
+                    <p>${post.content}</p>
+                    <form class="commentForm">
+                        <input type="hidden" name="postId" value="${post.id}" />
+                        <input type="text" name="commentContent" placeholder="Add a comment" />
+                        <button type="submit">Add Comment</button>
+                    </form>
+                    <div class="commentsContainer" data-postid="${post.id}"></div>
+    `;
+
 
             const commentForm = postElement.querySelector('.commentForm');
             const commentsContainer = postElement.querySelector('.commentsContainer');
@@ -147,10 +317,8 @@
 
         // function to fetch comments for the current post
         function fetchComments(postId) {
-            // console.log(postId, "TTTT");
-            // const commentsContainer = document.querySelector(`.commentsContainer[data-post_id="${postId}"]`);
+            console.log(postId, "TTTT");
 
-            // console.log(commentsContainer, "CCCCC");
             fetch(`/posts/${postId}/comments`)
                 .then((response) => {
                     if (!response.ok) {
@@ -159,16 +327,19 @@
                     return response.json();
                 })
                 .then((comments) => {
-                    const commentsContainer = document.querySelector(`commentsContainer[data-postid="${postId}"]`)
+                    console.log(comments, "cccc")
+                    const commentsContainer = document.querySelector(`.commentsContainer[data-postid="${postId}"]`);
+
+                    console.log(commentsContainer, "ccc")
                     console.log("Received Comments: ", comments);
                     commentsContainer.innerHTML = "";
                     comments.forEach((comment) => {
-                        console.log(comment, "comment");
                         const commentElement = document.createElement("div");
                         commentElement.classList.add("comment");
                         // /// dummy test 2
-                        // commentElement.textContent = comment.content;
-                        commentElement.textContent = `${comment.username}: ${comment.comment_content}`;
+                        commentElement.textContent = comment.content;
+                        // commentElement.textContent = `${comment.username}: ${comment.content}`;
+                        // commentElement.textContent = `${comment.content}`;
                         commentsContainer.appendChild(commentElement);
                     })
                 })
@@ -181,8 +352,7 @@
 
         }
 
-        // // Function to add a comment to the current post
-        console.log("testing");
+        // Function to add a comment to a post
         function addComment(postId, commentContent) {
             fetch('/comments', {
                 method: "POST",
@@ -191,14 +361,16 @@
                 },
                 body: JSON.stringify({ postId, content: commentContent })
             })
-                // .then(response => {
-                //     if (!response.ok) {
-                //         throw new Error('Failed to add comment');
-                //     }
-                //     return response.json();
-                // })
-                .then(commentContent => {
-                    fetchComments(postId);
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to add comment');
+                    }
+                    return response.json();
+                })
+                .then(comment => {
+                    console.log("Comment added successfully:", comment);
+                    // Optionally, update the UI to reflect the new comment
+                    fetchComments(postId); // Assuming you have a function to fetch comments
                 })
                 .catch(error => {
                     console.error("Error adding comment: ", error);
@@ -206,9 +378,6 @@
                 });
         }
 
-        // Fetch comments for the current post
-        // fetchComments(post.id);
-        // return postElement;
 
 
 

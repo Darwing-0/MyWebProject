@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us</title>
- 
+    <title> Nutrition Plan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <style>
+        <style>
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
@@ -32,44 +31,8 @@
         p {
             font-size: 18px;
             line-height: 1.6;
-        }
-
-        /* Form styling */
-        .form-group {
+            text-align: left;
             margin-bottom: 20px;
-        }
-
-        .input-field,
-        .select-field {
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-        }
-
-        .button {
-            padding: 12px;
-            background-color: #3498db;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        /* Additional styling for select fields */
-        .select-field {
-            appearance: none;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23333"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right #fff;
-            background-size: 20px;
-            padding-right: 30px;
-        }
-
-        /* Optional styling for better responsiveness */
-        @media (max-width: 600px) {
-            .container {
-                width: 100%;
-            }
         }
 
         /* Tabs styling */
@@ -93,6 +56,13 @@
             background-color: #2980b9;
         }
 
+        /* Centered strong tags */
+        strong {
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
         /* Log-out button styling */
         .logout-form {
             margin-top: 20px;
@@ -111,6 +81,63 @@
         .logout-form button:hover {
             background-color: #c0392b;
         }
+
+        /* styles.css */
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+form {
+  margin-top: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="number"],
+button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+button[type="submit"] {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
     </style>
 </head>
 <body>
@@ -128,9 +155,9 @@
     <!--NutritionTab -->
     <a href="/nutritionplan">Nutrition plan</a>
     <!-- About Us/FAQ Tab-->
-    <a href="/about">About Us/FAQ</a>
-    <!--Contact Tab -->
     <a href="/">HomePage</a>
+    <!--Contact Tab -->
+    <a href="/contact">Contact</a>
     <!--log out-->
     <form action="/logout?_method=DELETE" method="POST" class="logout-form">
         <button type="submit">Log Out</button>
@@ -138,30 +165,44 @@
 </div>
 
 <div class="container">
-    <h1>Contact Us</h1>
-    <p>Feel free to reach out to us using the form below.</p>
-
-    <form action="/contact" method="POST">
-        <div class="form-group">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" class="input-field" required>
+    <div class="container">
+        <h1>Nutrition Plans</h1>
+        <div id="plan-info">
+          <% if (plans.length === 0) { %>
+            <p>No nutrition plans available</p>
+          <% } else { %>
+            <% plans.forEach(plan => { %>
+              <div class="plan">
+                <h2>Plan ID: <%= plan.planID %></h2>
+                <p>User ID: <%= plan.userID %></p>
+                <p>Calorie Goal: <%= plan.calorieGoal %></p>
+                <p>Protein Goal: <%= plan.proteinGoal %></p>
+                <p>Carb Ratio: <%= plan.carbRatio %></p>
+                <p>Fat Ratio: <%= plan.fatRatio %></p>
+              </div>
+            <% }) %>
+          <% } %>
         </div>
-
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" class="input-field" required>
-        </div>
-
-        <div class="form-group">
-            <label for="message">Message:</label>
-            <textarea id="message" name="message" class="input-field" rows="4" required></textarea>
-        </div>
-
-        <button type="submit" class="button">Submit</button>
-    </form>
+        <form action="/createPlan" method="post">
+          <label for="userID">User ID:</label>
+          <input type="text" id="userID" name="userID" required>
+          <label for="calorieGoal">Calorie Goal:</label>
+          <input type="number" id="calorieGoal" name="calorieGoal" required>
+          <label for="proteinGoal">Protein Goal:</label>
+          <input type="number" id="proteinGoal" name="proteinGoal" required>
+          <label for="carbRatio">Carb Ratio:</label>
+          <input type="number" id="carbRatio" name="carbRatio" required>
+          <label for="fatRatio">Fat Ratio:</label>
+          <input type="number" id="fatRatio" name="fatRatio" required>
+          <button type="submit">Create Plan</button>
+        </form>
+      </div>
 </div>
+
+
+
+</body>
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-</body>
 </html>

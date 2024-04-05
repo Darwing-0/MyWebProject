@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us</title>
- 
+    <title>Recommendations</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <style>
+        <style>
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
@@ -32,44 +31,8 @@
         p {
             font-size: 18px;
             line-height: 1.6;
-        }
-
-        /* Form styling */
-        .form-group {
+            text-align: left;
             margin-bottom: 20px;
-        }
-
-        .input-field,
-        .select-field {
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-        }
-
-        .button {
-            padding: 12px;
-            background-color: #3498db;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        /* Additional styling for select fields */
-        .select-field {
-            appearance: none;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23333"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right #fff;
-            background-size: 20px;
-            padding-right: 30px;
-        }
-
-        /* Optional styling for better responsiveness */
-        @media (max-width: 600px) {
-            .container {
-                width: 100%;
-            }
         }
 
         /* Tabs styling */
@@ -93,6 +56,13 @@
             background-color: #2980b9;
         }
 
+        /* Centered strong tags */
+        strong {
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
         /* Log-out button styling */
         .logout-form {
             margin-top: 20px;
@@ -111,6 +81,46 @@
         .logout-form button:hover {
             background-color: #c0392b;
         }
+
+        body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+#exercise-info {
+  margin-bottom: 20px;
+}
+
+button {
+  display: block;
+  margin: 0 auto;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
     </style>
 </head>
 <body>
@@ -126,42 +136,60 @@
     <!--Engagement Tab -->
     <a href="/Community">Community</a>
     <!--NutritionTab -->
-    <a href="/nutritionplan">Nutrition plan</a>
+    <a href="/nutritionplan"> Nutrition Plan</a>
     <!-- About Us/FAQ Tab-->
-    <a href="/about">About Us/FAQ</a>
-    <!--Contact Tab -->
     <a href="/">HomePage</a>
+    <!--Contact Tab -->
+    <a href="/contact">Contact</a>
     <!--log out-->
     <form action="/logout?_method=DELETE" method="POST" class="logout-form">
         <button type="submit">Log Out</button>
     </form>
 </div>
 
+
 <div class="container">
-    <h1>Contact Us</h1>
-    <p>Feel free to reach out to us using the form below.</p>
+    <h1>Random Fitness Plan Generator</h1>
+    <div id="plan-info">
+      <p>Loading...</p>
+    </div>
+    <button id="generate-btn">Generate Random Fitness Plan</button>
+  </div>
 
-    <form action="/contact" method="POST">
-        <div class="form-group">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" class="input-field" required>
-        </div>
+</body>
 
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" class="input-field" required>
-        </div>
+<script>
+ document.addEventListener("DOMContentLoaded", function() {
+  const generateBtn = document.getElementById("generate-btn");
+  const planInfo = document.getElementById("plan-info");
 
-        <div class="form-group">
-            <label for="message">Message:</label>
-            <textarea id="message" name="message" class="input-field" rows="4" required></textarea>
-        </div>
+  generateBtn.addEventListener("click", function() {
+    planInfo.innerHTML = "<p>Loading...</p>";
+    getRandomFitnessPlan();
+  });
 
-        <button type="submit" class="button">Submit</button>
-    </form>
-</div>
+  function getRandomFitnessPlan() {
+    fetch("https://wger.de/api/v2/exercise/?format=json&language=2") // English language code is 2
+      .then(response => response.json())
+      .then(data => {
+        const randomIndex = Math.floor(Math.random() * data.results.length);
+        const randomPlan = data.results[randomIndex];
+        console.log(randomPlan)
+        const planHTML = `
+          <h2>${randomPlan.name}</h2>
+          <p><strong>Description:</strong> ${randomPlan.description}</p>
+        `;
+        planInfo.innerHTML = planHTML;
+      })
+      .catch(error => {
+        console.error("Error fetching fitness plan:", error);
+        planInfo.innerHTML = "<p>Error fetching fitness plan. Please try again.</p>";
+      });
+  }
+});
+
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
-</body>
 </html>
